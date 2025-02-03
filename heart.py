@@ -15,6 +15,37 @@ if page == pages[0] :
     st.write("1.Exploration des données")
     if st.checkbox("Afficher les 5 premières lignes du dataframe",False):
         st.dataframe(df.head())
+    if st.checkbox("Afficher les explications des variables",False):
+        '''Order   Feature	       Description	                   Feature Value Range'''
+        
+        '''1: Age, Age in years, 29 to 77'''
+
+        '''2: Sex, Gender, Value 1 = male, Value 0 = female'''
+               
+        '''3: Cp, Chest pain type, 0: typical angina, 1: atypical angina, 2: non-anginal pain, 3: asymptomatic'''
+                                                                
+        '''4: Trestbps, Resting blood pressure (mm/Hg), 94 to 200'''
+
+        '''5: Chol, Serum cholesterol in mg/dL, 126 to 564'''
+
+        '''6: Fbs, Fasting blood sugar > 120 mg/dL, 1 = true, 0 = false'''
+                                                                        
+        '''7: Restecg, Resting electrocardiographic results, 0: Normal, 1: ST-T wave abnormality, 2: left ventricular hypertrophy'''
+                       	                                                
+        '''8: Thalach, Maximum heart rate achieved, 71 to 202'''
+
+        '''9: Exang, Exercise-induced angina, 1 = yes, 0 = no'''
+                                                                    
+        '''10: Oldpeak, Stress test depression induced by exercise relative to rest, 0 to 6.2'''
+                                    	        
+        '''11: Slope, Slope of the peak exercise ST segment, 0: upsloping, 1: flat, 2: downsloping'''
+                                       	                            
+        '''12: Ca, Number of major vessels, 0–3 colored by fluoroscopy'''
+
+        '''13: Thal, Thallium heart rate, 0 = normal; 1: fixed defect, 2: reversible defect'''
+                                                                        
+        '''14: Target, Diagnosis of heart disease, 0 = no disease, 1: disease'''
+                                                                           
     if st.checkbox("Afficher les dimensions du dataframe",False):
         st.write(df.shape)
     st.write("Distribution des valeurs de la target : \n", df['target'].value_counts())
@@ -32,48 +63,50 @@ import numpy as np
 
 if page == pages[1] :
     st.write("2.Data visualisation")
-    fig0=plt.figure(figsize=(6,6))
-    sns.displot(data=df['age'],kde=True)
-    plt.title("Distribution de l'âge");
-    plt.xlabel("Âge");
-    plt.ylabel("Fréquence")
-    st.pyplot(fig0)
+    st.write("Quelques représentations graphiques.")
     fig1=plt.figure(figsize=(6,6))
     sns.lineplot(data=df,x='class_ages',y='chol',hue='sex')
+    plt.title("Distribution du taux de choléstérol en fonction de l'âge et par sexe")
     st.pyplot(fig1)
-    st.write("On note que le taux de cholestérol pour les femmes est significativement plus élevé à partir de 48 ans et se stabilise.")
-    st.write("Quant aux hommes,le taux de cholestérol est plus élevé à partir de 56 ans et augmente avec l'âge.")
+    st.write("On note que le taux de cholestérol pour les femmes augmente rapidement entre le premier et le deuxième quartile et se stabilise après.")
+    st.write("Quant aux hommes,le taux de cholestérol augmente lentement entre le premier et le troisième quartile et plus rapidement après.")
     fig2=plt.figure(figsize=(6,6))
     sns.lineplot(data=df,x='class_ages',y='thalach',hue='sex')
+    plt.title("Fréquence cardiaque maximale en fonction de l'âge et par sexe")
     st.pyplot(fig2)
+    st.write('On remarque que la fréquence cardiaque diminue plus lentement entre le deuxième et le troisième quartile, et ce pour les deux sexes.')
     fig3=plt.figure(figsize=(6,6))
     sns.lineplot(data=df,x='class_ages',y='trestbps',hue='sex')
+    plt.title("Tension artérielle au repos en fonction de l'âge et par sexe") 
     st.pyplot(fig3)
+    st.write('On remarque que la tension artérielle augmente rapidement pour les femmes entre le premier et le deuxième quartile, puis moins après.')
+    st.write("Quant aux hommes,la tension artérielle augmente plus rapidement entre le deuxième et le troisième quartile, puis décroit après.")
     fig4=plt.figure()
     sns.heatmap(data=X1.corr(),annot=True,cmap='coolwarm',fmt='.1f')
+    plt.title("Matrice de corrélation de Pearson entre les variables explicatives.")
     st.pyplot(fig4)    
 
 from sklearn.feature_selection import SelectKBest, chi2, f_regression, mutual_info_regression, RFE, RFECV,f_classif
-sel1 = SelectKBest(f_classif,k=7)
-sel2 = SelectKBest(chi2,k=7)
-sel3 = SelectKBest(f_regression,k=7)
+sel1 = SelectKBest(f_classif,k=5)
+sel2 = SelectKBest(chi2,k=5)
+sel3 = SelectKBest(f_regression,k=5)
 X1_new = sel1.fit_transform(X1,y)
 X2_new = sel2.fit_transform(X1,y)
 X3_new = sel3.fit_transform(X1,y)
 
 if page == pages[2] :
     st.write("3.Réduction de dimension, feature selection")
-    st.write("X shape :", X1.shape)
-    st.write("X_new shape :", X1_new.shape)
     st.write("On teste 3 méthodes de feature selection : \n - f_classif \n - chi2 \n - f_regression")
     st.write("Les variables sélectionnées par méthode sont : \n")
     st.dataframe(pd.DataFrame({"f_classif":sel1.get_support()*sel1.feature_names_in_,
                                 "chi2": sel2.get_support()*sel2.feature_names_in_,
                                 "f_regression":sel3.get_support()*sel3.feature_names_in_})                        
                 )
-    st.write("On choisit la méthode f_classif avec 7 variables pertinentes sur 13.")
+    st.write("On choisit la méthode f_classif mais les 3 méthodes sélectionnent les mêmes variables pertinentes.")
     st.write(sel1.get_feature_names_out())
-    
+    st.write("X shape :", X1.shape)
+    st.write("X_new shape :", X1_new.shape)
+
     scores = -np.log10(sel1.pvalues_)
     scores /= scores.max()
     
@@ -121,8 +154,9 @@ data = pd.DataFrame([rf.score(X_ntest,y_ntest),
 
 if page == pages[3] :
     st.write("4.Machine Learning")  
+    st.write("On compare la performance des 3 méthodes sélectionnées.")
     st.dataframe(pd.DataFrame(data.round(3)))
-    st.write("On garde le modèle RF.")
+    st.write("La méthode RF donne de meilleurs résultats.")
     st.write('Matrice de confusion :\n')
     st.dataframe(pd.crosstab(y_ntest,y_pred))
     print('-'*100)
@@ -131,10 +165,10 @@ if page == pages[3] :
     
     st.write("ROC-AUC :",roc_auc.round(2))
     fig5=plt.figure()
-    plt.plot(fpr,tpr,c="orange",label="Modèle clf(auc = 0.72)");
+    plt.plot(fpr,tpr,c="orange",label="Modèle clf(auc = 0.99)");
     plt.xlim(0,1);
     plt.xlabel("Taux de faux positifs");
-    plt.plot(fpr,fpr,c="blue", linestyle ='--', label="Aléatoire (auc = 0.99)");
+    plt.plot(fpr,fpr,c="blue", linestyle ='--', label="Aléatoire (auc = 0.72)");
     plt.ylim(0,1.05);
     plt.ylabel('Taux de vrais positifs');
     plt.title("Courbe ROC");
@@ -143,27 +177,23 @@ if page == pages[3] :
 
 if page == pages[4] :
     st.write("5.Prédiction")
-    st.write("Enter the values requested below :")
-    val1=st.selectbox("Chest pain (cp) value",[0,1,2,3])
-    ''' Value 0: typical angina,
-        Value 1: atypical angina,
-        Value 2: non-anginal pain,
-        Value 3: asymptomatic'''
-    val2=st.number_input("Maximum heart achieved (thalach) value")
+    st.write("Entrez les valeurs requises ci-dessous :")
+    val1=st.selectbox("Douleur thoracique (cp)",[0,1,2,3])
+    ''' Value 0: angine de poitrine typique,
+        Value 1: angine de poitrine atypique,
+        Value 2: absence de douleur thoracique,
+        Value 3: asymptomatique'''
+    val2=st.number_input("Fréquence cardiaque maximale (thalach)")
     val3=st.selectbox("Exercise-induced angina (exang) value",[0,1])
     ''' Value 1 = yes,
         Value 0 = no'''
     val4=st.number_input("Stress test depression induced by exercise relative to rest (oldpeak) value")
-    val5=st.selectbox("The slope of the peak exercise ST segment (slope) value",[0,1,2])
-    ''' Value 0: upsloping,
-        Value 1: flat
-        Value 2: downsloping'''
-    val6=st.selectbox("Number of major vessels (ca) value",[0,1,2,3])
+    ''' 0 to 6.2'''
+    val5=st.selectbox("Number of major vessels (ca) value",[0,1,2,3])
     '''Number of major vessels (0–3) colored by fluoroscopy'''
-    val7=st.selectbox("Thallium heart rate (thal) value",[0,1,2])
-    '''Value 0 = normal, Value 1 = fixed defect,
-        Value 2 = reversible defect'''
     
-    X_submitted = np.array([val1,val2,val3,val4,val5,val6,val7])
+    
+    X_submitted = np.array([val1,val2,val3,val4,val5])
     pred = rf.predict(X_submitted.reshape(1,-1))
     st.write("Heart disease prediction :",pred)
+    '''0 : no disease, 1 : disease'''
