@@ -1,11 +1,11 @@
-FROM python:3.8-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
 COPY . /app
 
-RUN pip install -r requirements.txt
+RUN pip install matplotlib numpy pandas scikit-learn seaborn streamlit
 
-EXPOSE 8001
+EXPOSE 8000
 
-CMD streamlit run heart.py
+CMD ["streamlit", "run", "heart.py"]
